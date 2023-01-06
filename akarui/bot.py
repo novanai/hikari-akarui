@@ -20,6 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+from __future__ import annotations
+
 import asyncio
 import logging
 
@@ -30,42 +32,46 @@ from . import commands, context, errors
 logger = logging.getLogger(__name__)
 
 
-class RESTBot(hikari.RESTBot):
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
+class RESTBotClient:
+    def __init__(self, bot: hikari.RESTBot) -> None:
+        self._bot = bot
 
-        self.slash_commands: dict[str, commands.SlashCommandBuilder] = {}
-        self.user_commands: dict[str, commands.ContextMenuCommandBuilder] = {}
-        self.message_commands: dict[str, commands.ContextMenuCommandBuilder] = {}
+        self._slash_commands: dict[str, commands.SlashCommandBuilder] = {}
+        self._user_commands: dict[str, commands.ContextMenuCommandBuilder] = {}
+        self._message_commands: dict[str, commands.ContextMenuCommandBuilder] = {}
 
-        self.set_listener(hikari.CommandInteraction, self._handle_interaction)
+        self._bot.set_listener(hikari.CommandInteraction, self._handle_interaction)
+
+    @classmethod
+    def from_restbot(cls, bot: hikari.RESTBot) -> RESTBotClient:
+        return cls(bot)
 
     def command(self, *groups: commands.SlashCommandGroup):
         for group in groups:
             cmd = group._build()
-            self.slash_commands[cmd.name] = cmd
+            self._slash_commands[cmd.name] = cmd
 
         def inner(cmd: commands.CommandBuilderT) -> None:
             if isinstance(cmd, commands.SlashCommandBuilder):
-                self.slash_commands[cmd.name] = cmd
+                self._slash_commands[cmd.name] = cmd
             elif (
                 isinstance(cmd, commands.ContextMenuCommandBuilder)
                 and cmd.type == hikari.CommandType.USER
             ):
-                self.user_commands[cmd.name] = cmd
+                self._user_commands[cmd.name] = cmd
             elif (
                 isinstance(cmd, commands.ContextMenuCommandBuilder)
                 and cmd.type == hikari.CommandType.MESSAGE
             ):
-                self.message_commands[cmd.name] = cmd
+                self._message_commands[cmd.name] = cmd
 
         return inner
 
     def _gather_commands(self) -> list[commands.CommandBuilderT]:
         return [
-            *self.slash_commands.values(),
-            *self.user_commands.values(),
-            *self.message_commands.values(),
+            *self._slash_commands.values(),
+            *self._user_commands.values(),
+            *self._message_commands.values(),
         ]
 
     async def _register_commands(self, client_id: int, client_secret: str) -> None:
@@ -103,11 +109,11 @@ class RESTBot(hikari.RESTBot):
         cmd: commands.CommandBuilderT | None = None
 
         if event.command_type == hikari.CommandType.SLASH:
-            cmd = self.slash_commands.get(event.command_name)
+            cmd = self._slash_commands.get(event.command_name)
         elif event.command_type == hikari.CommandType.USER:
-            cmd = self.user_commands.get(event.command_name)
+            cmd = self._user_commands.get(event.command_name)
         if event.command_type == hikari.CommandType.MESSAGE:
-            cmd = self.message_commands.get(event.command_name)
+            cmd = self._message_commands.get(event.command_name)
 
         if cmd:
             callback, _type = self._get_callback_and_type(event, cmd)

@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from .bot import RESTBot
+from .bot import RESTBotClient
 from .commands import (
     CommandResponseT,
     SlashCommandGroup,
