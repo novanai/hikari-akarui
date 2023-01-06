@@ -22,4 +22,4 @@
 
 
 class CommandNotFoundError(Exception):
-    ...
+    """Error raised when a callback for a command is not found."""

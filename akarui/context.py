@@ -26,4 +26,4 @@ from hikari import CommandInteraction
 
 @attr.define
 class Context(CommandInteraction):
-    ...
+    """Represents a command interaction on Discord."""

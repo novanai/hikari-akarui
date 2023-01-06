@@ -33,6 +33,13 @@ logger = logging.getLogger(__name__)
 
 
 class RESTBotClient:
+    """A client to handle interactions.
+    
+    Parameters
+    ----------
+    bot : hikari.impl.rest_bot.RESTBot
+        The bot to create a client from.
+    """
     def __init__(self, bot: hikari.RESTBot) -> None:
         self._bot = bot
 
@@ -44,9 +51,28 @@ class RESTBotClient:
 
     @classmethod
     def from_restbot(cls, bot: hikari.RESTBot) -> RESTBotClient:
+        """Create a RESTBotClient instance from a :obj:`~hikari.impl.rest_bot.RESTBot` instance.
+        
+        Parameters
+        ----------
+        bot : hikari.impl.rest_bot.RESTBot
+            The bot to create a client from.
+            
+        Returns
+        -------
+        RESTBotClient
+            The client.
+        """
         return cls(bot)
 
     def command(self, *groups: commands.SlashCommandGroup):
+        """Attach a command or slash command group to the client.
+        
+        Parameters
+        ----------
+        *groups : commands.SlashCommandGroup
+            The group(s) to attach to the client.
+        """
         for group in groups:
             cmd = group._build()
             self._slash_commands[cmd.name] = cmd
@@ -100,6 +126,15 @@ class RESTBotClient:
         await app.close()
 
     def register_commands(self, client_id: int, client_secret: str) -> None:
+        """Register all commands attached to the client.
+        
+        Parameters
+        ----------
+        client_id : int
+            The application's client ID.
+        client_secret : str
+            The application's client secret.
+        """
         asyncio.run(self._register_commands(client_id, client_secret))
 
     async def _handle_interaction(
