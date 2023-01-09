@@ -34,12 +34,13 @@ logger = logging.getLogger(__name__)
 
 class RESTBotClient:
     """A client to handle interactions.
-    
+
     Parameters
     ----------
     bot : hikari.impl.rest_bot.RESTBot
         The bot to create a client from.
     """
+
     def __init__(self, bot: hikari.RESTBot) -> None:
         self._bot = bot
 
@@ -52,12 +53,12 @@ class RESTBotClient:
     @classmethod
     def from_restbot(cls, bot: hikari.RESTBot) -> RESTBotClient:
         """Create a RESTBotClient instance from a :obj:`~hikari.impl.rest_bot.RESTBot` instance.
-        
+
         Parameters
         ----------
         bot : hikari.impl.rest_bot.RESTBot
             The bot to create a client from.
-            
+
         Returns
         -------
         RESTBotClient
@@ -67,7 +68,7 @@ class RESTBotClient:
 
     def command(self, *groups: commands.SlashCommandGroup):
         """Attach a command or slash command group to the client.
-        
+
         Parameters
         ----------
         *groups : commands.SlashCommandGroup
@@ -127,7 +128,7 @@ class RESTBotClient:
 
     def register_commands(self, client_id: int, client_secret: str) -> None:
         """Register all commands attached to the client.
-        
+
         Parameters
         ----------
         client_id : int

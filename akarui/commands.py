@@ -63,7 +63,7 @@ CommandBuilderT = SlashCommandBuilder | ContextMenuCommandBuilder
 
 class SlashCommandGroup:
     """A slash command group.
-    
+
     Parameters
     ----------
     name : str
@@ -71,6 +71,7 @@ class SlashCommandGroup:
     description : str
         The description of the command group.
     """
+
     def __init__(self, name: str, description: str) -> None:
         self._builder = SlashCommandBuilder(name=name, description=description)
         self._builder.callbacks[name] = {}
@@ -78,11 +79,11 @@ class SlashCommandGroup:
         self._sub_commands: list[SlashCommandBuilder] = []
         self._sub_command_groups: list[SlashSubCommandGroup] = []
 
-    def command(self, *sub_groups: SlashSubCommandGroup) -> typing.Callable[
-        [SlashCommandBuilder], None
-    ]:
+    def command(
+        self, *sub_groups: SlashSubCommandGroup
+    ) -> typing.Callable[[SlashCommandBuilder], None]:
         """Attach a sub command group or a decorated command to this command group.
-        
+
         Parameters
         ----------
         *sub_groups : SlashSubCommandGroup
@@ -169,7 +170,7 @@ class SlashCommandGroup:
 
 class SlashSubCommandGroup:
     """A slash sub command group.
-    
+
     Parameters
     ----------
     name : str
@@ -177,6 +178,7 @@ class SlashSubCommandGroup:
     description : str
         The description of the sub command group.
     """
+
     def __init__(self, name: str, description: str) -> None:
         self._builder = SlashCommandBuilder(name=name, description=description)
         self._builder.callbacks[name] = {}
@@ -185,6 +187,7 @@ class SlashSubCommandGroup:
 
     def command(self) -> typing.Callable[[SlashCommandBuilder], None]:
         """Attach a decorated command to this sub command group."""
+
         def inner(cmd: SlashCommandBuilder) -> None:
             self._sub_commands.append(cmd)
 
@@ -208,9 +211,11 @@ class SlashSubCommandGroup:
         return self._builder
 
 
-def slash_command(name: str, description: str) -> typing.Callable[[CommandCallbackT], SlashCommandBuilder]:
+def slash_command(
+    name: str, description: str
+) -> typing.Callable[[CommandCallbackT], SlashCommandBuilder]:
     """Convert the decorated function into a slash command.
-    
+
     Parameters
     ----------
     name : str
@@ -218,6 +223,7 @@ def slash_command(name: str, description: str) -> typing.Callable[[CommandCallba
     description : str
         The description of the slash command.
     """
+
     def inner(func: CommandCallbackT) -> SlashCommandBuilder:
         builder = SlashCommandBuilder(name=name, description=description)
         builder.callbacks[name] = func
@@ -226,14 +232,17 @@ def slash_command(name: str, description: str) -> typing.Callable[[CommandCallba
     return inner
 
 
-def user_command(name: str) -> typing.Callable[[CommandCallbackT], ContextMenuCommandBuilder]:
+def user_command(
+    name: str,
+) -> typing.Callable[[CommandCallbackT], ContextMenuCommandBuilder]:
     """Convert the decorated function into a user command.
-    
+
     Parameters
     ----------
     name : str
         The name of the user command.
     """
+
     def inner(func: CommandCallbackT) -> ContextMenuCommandBuilder:
         builder = ContextMenuCommandBuilder(name=name, type=hikari.CommandType.USER)
         builder.callbacks[name] = func
@@ -242,14 +251,17 @@ def user_command(name: str) -> typing.Callable[[CommandCallbackT], ContextMenuCo
     return inner
 
 
-def message_command(name: str) -> typing.Callable[[CommandCallbackT], ContextMenuCommandBuilder]:
+def message_command(
+    name: str,
+) -> typing.Callable[[CommandCallbackT], ContextMenuCommandBuilder]:
     """Convert the decorated function into a message command.
-    
+
     Parameters
     ----------
     name : str
         The name of the message command.
     """
+
     def inner(func: CommandCallbackT) -> ContextMenuCommandBuilder:
         builder = ContextMenuCommandBuilder(name=name, type=hikari.CommandType.MESSAGE)
         builder.callbacks[name] = func
@@ -285,6 +297,7 @@ def settings(
     description_localizations: typing.Mapping[hikari.locales.Locale | str, str], optional
         The description localizations to set for the command.
     """
+
     def inner(cmd: CommandBuilderT) -> CommandBuilderT:
         cmd.set_default_member_permissions(default_member_permissions)
         cmd.set_is_dm_enabled(is_dm_enabled)
@@ -347,6 +360,7 @@ def option(
     max_length : int, optional
         The maximum length permitted (inclusive).
     """
+
     def inner(cmd: SlashCommandBuilder) -> SlashCommandBuilder:
         option = hikari.CommandOption(
             type=type,
