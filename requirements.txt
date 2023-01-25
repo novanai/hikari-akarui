@@ -1,1 +1,1 @@
-hikari[speedups,server]~=2.0.0.dev115
+hikari[server]~=2.0.0.dev115

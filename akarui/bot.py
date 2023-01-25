@@ -26,6 +26,7 @@ import asyncio
 import logging
 
 import hikari
+import typing
 
 from . import commands, context, errors
 
@@ -66,7 +67,7 @@ class RESTBotClient:
         """
         return cls(bot)
 
-    def command(self, *groups: commands.SlashCommandGroup):
+    def command(self, *groups: commands.SlashCommandGroup)  -> typing.Callable[[commands.CommandBuilderT], None]:
         """Attach a command or slash command group to the client.
 
         Parameters
@@ -94,12 +95,29 @@ class RESTBotClient:
 
         return inner
 
-    def _gather_commands(self) -> list[commands.CommandBuilderT]:
-        return [
+    def _gather_commands(self) -> dict[int | None, list[commands.CommandBuilderT]]:
+        cmds: dict[int | None, list[commands.CommandBuilderT]] = {}
+
+        builders: list[commands.CommandBuilderT] = [
             *self._slash_commands.values(),
             *self._user_commands.values(),
             *self._message_commands.values(),
         ]
+
+        for cmd in builders:
+            if cmd.guilds:
+                for guild in cmd.guilds:
+                    id_ = guild.id if isinstance(guild, hikari.PartialGuild) else guild
+                    if id_ in cmds:
+                        cmds[id_].append(cmd)
+                    else:
+                        cmds[id_] = [cmd]
+            elif None in cmds:
+                cmds[None].append(cmd)
+            else:
+                cmds[None] = [cmd]
+
+        return cmds
 
     async def _register_commands(self, client_id: int, client_secret: str) -> None:
         app = hikari.RESTApp()
@@ -115,14 +133,23 @@ class RESTBotClient:
         async with app.acquire(token.access_token, "Bearer") as rest:
             commands = self._gather_commands()
 
+            builders: list[commands.CommandBuilderT] = [ # type: ignore[name-defined]
+                *self._slash_commands.values(),
+                *self._user_commands.values(),
+                *self._message_commands.values(),
+            ]
+
             logger.info(
-                f"Registering {len(commands)} commands: "
-                + ", ".join(f"'{cmd.name}'" for cmd in commands)
+                f"Registering {len(builders)} commands: "
+                + ", ".join(f"'{cmd.name}'" for cmd in builders)
             )
-            await rest.set_application_commands(
-                client_id,
-                commands,
-            )
+
+            for guild_id, cmds in commands.items():
+                await rest.set_application_commands(
+                    client_id,
+                    cmds,
+                    guild_id or hikari.UNDEFINED,
+                )
 
         await app.close()
 
@@ -190,7 +217,7 @@ class RESTBotClient:
 
         else:
             return (  # type: ignore[return-value]
-                command.callbacks[event.command_name],  # type: ignore[index]
+                command.callbacks[event.command_name],
                 None,
             )
 

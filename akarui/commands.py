@@ -48,6 +48,7 @@ class SlashCommandBuilder(hikari.impl.SlashCommandBuilder):
         str,
         CommandCallbackT | dict[str, CommandCallbackT | dict[str, CommandCallbackT]],
     ] = attr.field(factory=dict)
+    guilds: list[hikari.SnowflakeishOr[hikari.PartialGuild]] = attr.field(factory=list)
 
 
 @attr.define
@@ -56,6 +57,7 @@ class ContextMenuCommandBuilder(hikari.impl.ContextMenuCommandBuilder):
         str,
         CommandCallbackT | dict[str, CommandCallbackT | dict[str, CommandCallbackT]],
     ] = attr.field(factory=dict)
+    guilds: list[hikari.SnowflakeishOr[hikari.PartialGuild]] = attr.field(factory=list)
 
 
 CommandBuilderT = SlashCommandBuilder | ContextMenuCommandBuilder
@@ -99,6 +101,7 @@ class SlashCommandGroup:
 
     def settings(
         self,
+        guilds: list[hikari.SnowflakeishOr[hikari.PartialGuild]],
         default_member_permissions: hikari.UndefinedType
         | int
         | hikari.Permissions = hikari.UNDEFINED,
@@ -112,6 +115,9 @@ class SlashCommandGroup:
 
         Parameters
         ----------
+        guilds : list[hikari.SnowflakeishOr[hikari.PartialGuild]]
+            The guild(s) to create this command group in. If omitted or an empty list,
+            then the command will be available globally.
         default_member_permissions : hikari.undefined.UndefinedType | int | hikari.permissions.Permissions
             The default member permissions to utilize this command group by default.
 
@@ -126,6 +132,7 @@ class SlashCommandGroup:
         description_localizations: typing.Mapping[hikari.locales.Locale | str, str], optional
             The description localizations to set for this command group.
         """
+        self._builder.guilds = guilds
         self._builder.set_default_member_permissions(default_member_permissions)
         self._builder.set_is_dm_enabled(is_dm_enabled)
         self._builder.set_is_nsfw(is_nsfw)
@@ -271,6 +278,7 @@ def message_command(
 
 
 def settings(
+    guilds: list[hikari.SnowflakeishOr[hikari.PartialGuild]],
     default_member_permissions: hikari.UndefinedType
     | int
     | hikari.Permissions = hikari.UNDEFINED,
@@ -283,6 +291,9 @@ def settings(
 
     Parameters
     ----------
+    guilds : list[hikari.SnowflakeishOr[hikari.PartialGuild]]
+        The guild(s) to create this command in. If omitted or an empty list,
+        then the command will be available globally.
     default_member_permissions : hikari.undefined.UndefinedType | int | hikari.permissions.Permissions
         The default member permissions to utilize the command by default.
 
@@ -299,6 +310,7 @@ def settings(
     """
 
     def inner(cmd: CommandBuilderT) -> CommandBuilderT:
+        cmd.guilds = guilds
         cmd.set_default_member_permissions(default_member_permissions)
         cmd.set_is_dm_enabled(is_dm_enabled)
         cmd.set_is_nsfw(is_nsfw)
